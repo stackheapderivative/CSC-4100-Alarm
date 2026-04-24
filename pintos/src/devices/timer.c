@@ -17,6 +17,8 @@
 #error TIMER_FREQ <= 1000 recommended
 #endif
 
+//Variable that keeps track of sleeping threads
+static struct list sleeping_list;
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
@@ -30,6 +32,7 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
+
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
@@ -37,6 +40,7 @@ timer_init (void)
 {
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  list_init(&sleeping_list); //Pass the list of sleeping threads to be woken up.
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -84,16 +88,35 @@ timer_elapsed (int64_t then)
   return timer_ticks () - then;
 }
 
+//New helper function to sort by wake time and constructs it back into the full thread struct -Alec Szczehowicz
+static bool wake_tick_less (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
+  struct thread *ta = list_entry (a, struct thread, elem);
+  struct thread *tb = list_entry (b, struct thread, elem);
+  return ta->wakeup_tick < tb->wakeup_tick;
+}
+
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
+
+//Re-worked timer_sleep function -Alec Szczechowicz
 void
 timer_sleep (int64_t ticks) 
 {
-  int64_t start = timer_ticks ();
+  if (ticks <= 0) {
+    return;
+  }
 
-  ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  ASSERT (intr_get_level() == INTR_ON);
+
+  struct thread *current = thread_current();
+  current->wakeup_tick = timer_ticks() + ticks;
+
+  //Disables the interrupts so that we can safely modify sleeping list which is shared with timer interupt handler
+  enum intr_level old_level = intr_disable();
+  list_insert_ordered(&sleeping_list, &current->elem, wake_tick_less, NULL);
+  thread_block();
+  intr_set_level(old_level);
+
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
