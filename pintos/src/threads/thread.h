@@ -88,7 +88,6 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-    int64_t wakeup_tick; //When this thread should wake up
     struct list_elem allelem;           /* List element for all threads list. */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -98,6 +97,8 @@ struct thread
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
+   //attempt to keep it safe from offsets
+   int64_t wakeup_tick; //When this thread should wake up
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
