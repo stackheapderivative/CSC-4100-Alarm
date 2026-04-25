@@ -38,9 +38,9 @@ static void real_time_delay (int64_t num, int32_t denom);
 void
 timer_init (void) 
 {
+  list_init(&sleeping_list); //Pass the list of sleeping threads to be woken up.
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
-  list_init(&sleeping_list); //Pass the list of sleeping threads to be woken up.
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -112,7 +112,8 @@ timer_sleep (int64_t ticks)
   struct thread *current = thread_current();
   enum intr_level old_level = intr_disable();
   current->wakeup_tick = timer_ticks() + ticks;
-
+  //DEBUG: confirm if thread is sleeping and when it should wake
+  printf("DEBUG: Thread %s sleeping. Current tick is %lld, wakeup at %lld\n", current->name, timer_ticks(), current->wakeup_tick);
   list_push_back(&sleeping_list, &current->elem);
   thread_block();
   intr_set_level(old_level);
@@ -204,15 +205,14 @@ timer_interrupt (struct intr_frame *args UNUSED)
  struct list_elem *e = list_begin(&sleeping_list);
  while (e != list_end(&sleeping_list)){
   struct thread *t = list_entry (e, struct thread, elem);
-
-  if (ticks >= t->wakeup_tick) {
-    e = list_remove(e); //remove from sleeping list!
-    thread_unblock(t);
-  } else {
-    e = list_next(e);
+  print("DEBUG: Waking up at thread %s at tick %lld, scheduled at %lld\n", t->name, ticks, t->wakeup_tick);
+  if (ticks < t->wakeup_tick) {
+    break;
+  }
+  e = list_remove(e); //remove from sleeping list!
+  thread_unblock(t);
   }
  }
-}
 
 static bool
 too_many_loops (unsigned loops) 

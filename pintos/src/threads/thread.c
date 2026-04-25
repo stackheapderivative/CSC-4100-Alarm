@@ -223,7 +223,7 @@ thread_block (void)
 {
   ASSERT (!intr_context ());
   ASSERT (intr_get_level () == INTR_OFF);
-
+  printf("DEBUG: Thread %s is now blocked\n", thread_current()->name);
   thread_current ()->status = THREAD_BLOCKED;
   schedule ();
 }
@@ -246,6 +246,7 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back (&ready_list, &t->elem);
+  printf("DEBUG: Thread %s is now ready\n", t->name);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -468,6 +469,7 @@ init_thread (struct thread *t, const char *name, int priority)
   strlcpy (t->name, name, sizeof t->name);
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
+  t->wakeup_tick = 0;
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 }
