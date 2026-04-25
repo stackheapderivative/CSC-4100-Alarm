@@ -113,7 +113,7 @@ timer_sleep (int64_t ticks)
 
   //Disables the interrupts so that we can safely modify sleeping list which is shared with timer interupt handler
   enum intr_level old_level = intr_disable();
-  list_insert_ordered(&sleeping_list, &current->elem, wake_tick_less, NULL);
+  list_push_back(&sleeping_list, &current->elem);
   thread_block();
   intr_set_level(old_level);
 
@@ -198,24 +198,20 @@ timer_interrupt (struct intr_frame *args UNUSED)
     if tick >= first thread wakeup_tick, pop it and call thread_unblock to put it back on the ready queue
     repeat until empty or thread isn't ready to wake up for school.
     */
- //ive used python to much
-  //check if sleeping list is empty
-  //maybe a while loop would be better
-  while(!list_empty(&sleeping_list)){
-    //get thread at front of list
-    struct thread *currTick = list_entry(list_begin(&sleeping_list), struct thread, elem);
-    //check if curr system ticks >= thread's wakeup_tick
-    if(ticks >= currTick->wakeup_tick) {
-      //this means time is up!! remove from list and wake up.
-      list_pop_front(&sleeping_list);
-      thread_unblock(currTick);
-    } else {
-      //if thread is not ready, break
-      break;
+ ticks++;
+ thread_tick();
+
+ struct list_elem *e = list_begin(&sleeping_list);
+ while (e != list_end(&sleeping_list)){
+  struct thread *t = list_entry (e, struct thread, elem);
+
+  if (ticks >= t->wakeup_tick) {
+    e = list_remove(e); //remove from sleeping list!
+    thread_unblock(t);
+  } else {
+    e = list_next(e);
   }
-  ticks++;
-  thread_tick ();
-}
+ }
 }
 
 static bool
