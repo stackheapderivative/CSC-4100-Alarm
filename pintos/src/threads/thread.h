@@ -5,6 +5,8 @@
 #include <list.h>
 #include <stdint.h>
 
+
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -97,12 +99,13 @@ struct thread
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
-   //attempt to keep it safe from offsets
    int64_t wakeup_tick; //When this thread should wake up
-
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+
+  extern struct list sleeping_list;
+  bool wake_tick_less (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
