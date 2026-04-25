@@ -207,7 +207,9 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
     if(ticks >= currTick->wakeup_tick) {
       //this means time is up!! remove from list and wake up.
       list_pop_front(&sleeping_list);
-      thread_unblock(currTick);
+      if (currTick->status == THREAD_BLOCKED) {
+        thread_unblock(currTick);
+      }
     } else {
       //if thread is not ready, break
       break;
