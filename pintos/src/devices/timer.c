@@ -204,12 +204,11 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
   while(!list_empty(&sleeping_list)) {
     struct thread *t = list_entry(list_begin(&sleeping_list), struct thread, elem);
 
-    if (ticks >= t->wakeup_tick) {
-      list_pop_front(&sleeping_list);
-      thread_unblock(t); //move thread from blocked to ready
-    } else {
+    if (ticks < t->wakeup_tick) {
       break;
     }
+    list_pop_front(&sleeping_list);
+    thread_unblock(t);
   }
   thread_tick();
 }
