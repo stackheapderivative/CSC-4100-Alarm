@@ -87,13 +87,6 @@ timer_elapsed (int64_t then)
   return timer_ticks () - then;
 }
 
-//New helper function to sort by wake time and constructs it back into the full thread struct -Alec Szczehowicz
-bool wake_tick_less (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
-  struct thread *ta = list_entry (a, struct thread, elem);
-  struct thread *tb = list_entry (b, struct thread, elem);
-  return ta->wakeup_tick < tb->wakeup_tick;
-}
-
 /* Sleeps for approximately TICKS timer ticks.  Interrupts must
    be turned on. */
 

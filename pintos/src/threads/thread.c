@@ -477,7 +477,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   list_push_back (&all_list, &t->allelem);
 }
-
+//New helper function to sort by wake time and constructs it back into the full thread struct -Alec Szczehowicz
 bool wake_tick_less (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED) {
   struct thread *ta = list_entry (a, struct thread, elem);
   struct thread *tb = list_entry (b, struct thread, elem);
