@@ -212,8 +212,6 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
       //if thread is not ready, break
       break;
   }
-  
-
 }
   thread_tick ();
 }
