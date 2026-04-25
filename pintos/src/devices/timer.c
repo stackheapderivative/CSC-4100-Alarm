@@ -108,11 +108,11 @@ timer_sleep (int64_t ticks)
 
   ASSERT (intr_get_level() == INTR_ON);
 
+  //Disables the interrupts so that we can safely modify sleeping list which is shared with timer interupt handler
   struct thread *current = thread_current();
+  enum intr_level old_level = intr_disable();
   current->wakeup_tick = timer_ticks() + ticks;
 
-  //Disables the interrupts so that we can safely modify sleeping list which is shared with timer interupt handler
-  enum intr_level old_level = intr_disable();
   list_push_back(&sleeping_list, &current->elem);
   thread_block();
   intr_set_level(old_level);
