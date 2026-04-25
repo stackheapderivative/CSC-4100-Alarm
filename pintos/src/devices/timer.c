@@ -198,7 +198,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
     if tick >= first thread wakeup_tick, pop it and call thread_unblock to put it back on the ready queue
     repeat until empty or thread isn't ready to wake up for school.
     */
- //ive used python to much
+  ticks++;
   //check if sleeping list is empty
   //maybe a while loop would be better
   while(!list_empty(&sleeping_list)){
@@ -213,7 +213,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
       //if thread is not ready, break
       break;
   }
-  ticks++;
+  
   thread_tick ();
 }
 }
