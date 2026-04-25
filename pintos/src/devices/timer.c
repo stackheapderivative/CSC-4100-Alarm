@@ -205,7 +205,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
  struct list_elem *e = list_begin(&sleeping_list);
  while (e != list_end(&sleeping_list)){
   struct thread *t = list_entry (e, struct thread, elem);
-  print("DEBUG: Waking up at thread %s at tick %lld, scheduled at %lld\n", t->name, ticks, t->wakeup_tick);
+  printf("DEBUG: Waking up at thread %s at tick %lld, scheduled at %lld\n", t->name, ticks, t->wakeup_tick);
   if (ticks < t->wakeup_tick) {
     break;
   }
