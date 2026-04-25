@@ -190,8 +190,7 @@ timer_print_stats (void)
 }
 
 /* Timer interrupt handler. */
-static void
-timer_interrupt (struct intr_frame *args UNUSED)
+static void timer_interrupt (struct intr_frame *args UNUSED)
 {
   /*Anthony Hardy
     check sleeping list per tick that checks on sleeping_list, only checks first thread.
@@ -214,8 +213,9 @@ timer_interrupt (struct intr_frame *args UNUSED)
       break;
   }
   
-  thread_tick ();
+
 }
+  thread_tick ();
 }
 
 static bool
