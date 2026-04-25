@@ -193,12 +193,31 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
+  /*Anthony Hardy
+    check sleeping list per tick that checks on sleeping_list, only checks first thread.
+    if tick >= first thread wakeup_tick, pop it and call thread_unblock to put it back on the ready queue
+    repeat until empty or thread isn't ready to wake up for school.
+    */
+ //ive used python to much
+  //check if sleeping list is empty
+  //maybe a while loop would be better
+  while(!list_empty(&sleeping_list)){
+    //get thread at front of list
+    struct thread *currTick = list_entry(list_begin(&sleeping_list), struct thread, elem);
+    //check if curr system ticks >= thread's wakeup_tick
+    if(ticks >= currTick->wakeup_tick) {
+      //this means time is up!! remove from list and wake up.
+      list_pop_front(&sleeping_list);
+      thread_unblock(currTick);
+    } else {
+      //if thread is not ready, break
+      break;
+  }
   ticks++;
   thread_tick ();
 }
+}
 
-/* Returns true if LOOPS iterations waits for more than one timer
-   tick, otherwise false. */
 static bool
 too_many_loops (unsigned loops) 
 {
