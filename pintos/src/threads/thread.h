@@ -5,7 +5,8 @@
 #include <list.h>
 #include <stdint.h>
 
-
+struct lock;
+extern struct list sleep_list;
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -90,21 +91,26 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
+    int base_priority;
+
+    struct list donations;
+    struct list_elem donation_elem;
+    struct lock *waiting_on;
+
     struct list_elem allelem;           /* List element for all threads list. */
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    
+
+    int64_t wakeup_tick;               /* Tick when this thread should wake up. */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
-   int64_t wakeup_tick; //When this thread should wake up
+
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
-
-  extern struct list sleeping_list;
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -142,6 +148,9 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void thread_sleep(int64_t);
+void thread_sleep (int64_t wakeup_tick);
+void thread_refresh_priority (void);
+void thread_remove_lock_donations (struct lock *lock);
+void thread_donate_priority (struct thread *t);
 
 #endif /* threads/thread.h */
