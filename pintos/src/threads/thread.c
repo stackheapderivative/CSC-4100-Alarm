@@ -216,6 +216,35 @@ thread_create (const char *name, int priority,
   return tid;
 }
 
+/*Blocks the current thread until wakeup_tick is reached and inserts the thread into sleepin_list in sorted order must not be called from the interrupt context. -Alec Szczechowicz*/
+void thread_sleep(int64_t wakeup_tick) {
+  struct thread *current = thread_current();
+  enum intr_level old_level;
+  ASSERT(!intr_context());
+  old_level = intr_disable();
+  if (current != idle_thread) {
+    current->wakeup_tick = wakeup_tick;
+    current->status = THREAD_BLOCKED;
+    struct list_elem *e = list_begin(&sleeping_list);
+    //We want to find the insertion point to keep sleeping list sroted in ascending order
+    while (e != list_end(&sleeping_list)) {
+      struct thread *t = list_entry(e, struct thread, elem);
+      if (wakeup_tick < t->wakeup_tick) {
+        break;
+      }
+      else {
+        e = list_next(e);
+      } 
+    }
+
+    //Insert before the first thread with a later wakeup time then yield the CPU
+    list_insert(e, &current->elem);
+    schedule();
+    intr_set_level(old_level);
+
+  }
+}
+
 /* Puts the current thread to sleep.  It will not be scheduled
    again until awoken by thread_unblock().
 
