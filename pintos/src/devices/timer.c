@@ -90,9 +90,7 @@ timer_elapsed (int64_t then)
    be turned on. */
 
 //Re-worked timer_sleep function -Alec Szczechowicz
-void
-timer_sleep (int64_t ticks) 
-{
+void timer_sleep (int64_t ticks)  {
   if (ticks <= 0) {
     return;
   }
@@ -100,9 +98,10 @@ timer_sleep (int64_t ticks)
   ASSERT (intr_get_level() == INTR_ON);
 
   struct thread *current = thread_current();
-  //Disables the interrupts so that we can safely modify sleeping list which is shared with timer interupt handler
+  //Disables the interrupts so that we can safely insert into sleeping_list() which is shared with interrupt handler.
   enum intr_level old_level = intr_disable();
-  list_push_back(&sleeping_list, &current->elem);
+  current->wakeup_tick = timer_ticks() + ticks;
+  list_insert_ordered(&sleeping_list, &current->elem, wake_tick_less, NULL);
   thread_block();
   intr_set_level(old_level);
 
@@ -197,7 +196,7 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
     e = list_remove(e); //remove from sleeping list!
     thread_unblock(t);
   } else {
-    e = list_next(e);
+    break;
   }
  }
 }
