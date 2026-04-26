@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 
+
 struct lock;
 extern struct list sleep_list;
 
@@ -92,16 +93,14 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     int base_priority;
+                 
+   struct list donations;
+   struct list_elem donation_elem;
+   struct lock *waiting_on;
+   struct list_elem allelem;
+   struct list_elem elem;
 
-    struct list donations;
-    struct list_elem donation_elem;
-    struct lock *waiting_on;
-
-    struct list_elem allelem;           /* List element for all threads list. */
-    /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element. */
-
-    int64_t wakeup_tick;               /* Tick when this thread should wake up. */
+   int64_t wakeup_tick; //ticks when this thread wake for the alarm clock
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -148,9 +147,9 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void thread_sleep (int64_t wakeup_tick);
-void thread_refresh_priority (void);
-void thread_remove_lock_donations (struct lock *lock);
-void thread_donate_priority (struct thread *t);
+void thread_refresh_priority(void);
+void thread_remove_lock_donations(struct lock *lock);
+void thread_donate_priority(struct thread *t);
+
 
 #endif /* threads/thread.h */
