@@ -186,19 +186,21 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
     repeat until empty or thread isn't ready to wake up for school.
     */
  ticks++;
- thread_tick();
-
+ 
  struct list_elem *e = list_begin(&sleeping_list);
  while (e != list_end(&sleeping_list)){
-  struct thread *t = list_entry (e, struct thread, elem);
-
-  if (ticks >= t->wakeup_tick) {
-    e = list_remove(e); //remove from sleeping list!
-    thread_unblock(t);
-  } else {
-    break;
+   struct thread *t = list_entry (e, struct thread, elem);
+   
+   if (ticks >= t->wakeup_tick) {
+     e = list_remove(e); //remove from sleeping list!
+     thread_unblock(t);
+    } else {
+      break;
+    }
   }
- }
+
+  thread_tick();
+  
 }
 
 static bool
