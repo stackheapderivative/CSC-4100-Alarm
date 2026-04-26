@@ -105,7 +105,6 @@ struct thread
   };
 
   extern struct list sleeping_list;
-  bool wake_tick_less (const struct list_elem *a, const struct list_elem *b, void *aux);
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
