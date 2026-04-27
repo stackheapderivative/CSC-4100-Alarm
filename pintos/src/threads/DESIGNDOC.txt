@@ -1,0 +1,68 @@
+			+--------------------+
+			|        CS 140      |
+			| PROJECT 1: THREADS |
+			|   DESIGN DOCUMENT  |
+			+--------------------+
+				   
+---- GROUP ----
+
+>> Fill in the names and email addresses of your group members.
+
+FirstName LastName <email@domain.example>
+Alec Szczechowicz acszczecho42@tntech.edu
+Anthony Hardy awhardy42@tntech.edu
+
+---- PRELIMINARIES ----
+
+>> If you have any preliminary comments on your submission, notes for the
+>> TAs, or extra credit, please give them here.
+
+>> Please cite any offline or online sources you consulted while
+>> preparing your submission, other than the Pintos documentation, course
+>> text, lecture notes, and course staff.
+
+https://www.youtube.com/watch?v=myO2bs5LMak (Included from the project resources)
+Claude AI was consulted strictly for debugging purposes and the explanation of Pintos threading concepts to fill the gaps from the lecture material and the video.
+
+
+			     ALARM CLOCK
+			     ===========
+
+---- DATA STRUCTURES ----
+
+>> A1: Copy here the declaration of each new or changed `struct' or
+>> `struct' member, global or static variable, `typedef', or
+>> enumeration.  Identify the purpose of each in 25 words or less.
+static struct list sleeping_list; //This is a sorted list of blocked threads waiting to be woke up and put in order by wake up tick
+int64_t wakeup_tick; //Tick at which a sleeping thread should be unlocked placed in struct thread.
+
+---- ALGORITHMS ----
+
+>> A2: Briefly describe what happens in a call to timer_sleep(),
+>> including the effects of the timer interrupt handler.
+
+timer_sleep sets the current threads wakeup_tick to timer_ticks + ticks, this disables interrupts and then inserts into sleeping_list sorted by wakeup_tick then calls thread_block. Each timer interrupt checks the front of sleeping_list and if the current tick has reached a threads wakeup_tick it pops it and then calls thread_unblock and this repeats until the list is empty of the front thread isn't ready. If any thread was unlocked intr_yield_on_return gets called to reschedule
+
+>> A3: What steps are taken to minimize the amount of time spent in
+>> the timer interrupt handler?
+
+sleeping_list is kept sorted by wakeup_tick so the interrupt handler only checks the front most element and breaks immediately when it finds a thread thats not ready yet. That way it doesn't have to scan through an unsorted list.
+
+---- SYNCHRONIZATION ----
+
+>> A4: How are race conditions avoided when multiple threads call
+>> timer_sleep() simultaneously?
+
+interrupts are disabled before modifying sleeping_list and calling thread_block preventing any other thread from modifying the list when its not supposed to.
+
+>> A5: How are race conditions avoided when a timer interrupt occurs
+>> during a call to timer_sleep()?
+
+Interrupts are disabled before list insertion for the same reason as above. So the timer interrupt cannot be executed before setting wakeup_tick and blocking the thread preventing a race condition.
+
+---- RATIONALE ----
+
+>> A6: Why did you choose this design?  In what ways is it superior to
+>> another design you considered?
+
+A sorted list was chosen so that the interrupt handler runs per woken thread rather than scanning through an unsorted list of sleeping threads. An unsorted list was considered but changed because we though the interrupt handler was going to check threads that weren't ready. 
