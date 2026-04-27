@@ -198,7 +198,7 @@ static void timer_interrupt (struct intr_frame *args UNUSED)
     repeat until empty or thread isn't ready to wake up for school.
     */
   ticks++;
-  bool woke_thread = false; //A variable that we will use to check if a thread is awake or sleeping
+  bool woke_thread = false; //A variable that we will use to check if a thread is awake or sleeping -Alec Szczechowicz
   //check if sleeping list is empty
   //maybe a while loop would be better
   while(!list_empty(&sleeping_list)){
